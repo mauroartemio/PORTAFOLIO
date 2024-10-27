@@ -1,0 +1,140 @@
+---
+title: "Evidencia 2 | Proyecto integrador"
+author: "Mauro Artemio Sotelo Dávila"
+date: "2024-05-05"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Parte 1
+
+## Video
+
+Link al video: <https://youtu.be/F3cTh9L1cVc>
+
+# Parte 1
+
+## Código
+
+Bibliotecas:
+
+```{r}
+library(ggplot2)
+library(seqinr)
+library(stringr)
+library(ade4)
+library(ape)
+library(adegenet)
+library(Biostrings)
+```
+
+### Secuencia y opción para investigar
+
+Analizar las secuencias de SARS-CoV-2 reportadas en los 10 países con más casos reportados. Y puedes tratar de responder a la pregunta: ¿Son muy diferentes las variantes entre cada país? ¿Es diferente el SARS-CoV-2 entre las diferentes poblaciones: Asiática, Hispana, Europea o Africana?
+
+```{r}
+francia <- read.fasta(file = "francia.fasta")
+autria <- read.fasta(file = "austria.fasta")
+eau <- read.fasta(file = "eau.fasta")
+china <- read.fasta(file = "china.fasta")
+india <- read.fasta(file = "india.fasta")
+italy <- read.fasta(file = "italy.fasta")
+rusia <- read.fasta(file = "rusia.fasta")
+turquia <- read.fasta(file = "turquia.fasta")
+uk <- read.fasta(file = "uk.fasta")
+usa <- read.fasta(file = "usa.fasta")
+```
+
+### Longitud de las secuencias
+
+```{r}
+tamaño <- function(seq){
+  getLength(seq)
+}
+tamaños <- c(francia = tamaño(francia), autria =tamaño(autria), eau =tamaño(eau), china =tamaño(china), india =tamaño(india), italy = tamaño(italy), rusia =tamaño(rusia), turquia =tamaño(turquia), uk =tamaño(uk), usa =tamaño(usa))
+datos_tamaños <- data.frame(Variante = names(tamaños), Tamaño = tamaños)
+tamaños
+```
+
+### Gráfica comparativa del número de bases de ADN
+
+Función para contar bases:
+
+```{r}
+contar_bases <- function(seq) {
+  seq <- as.character(seq)
+  a_count <- str_count(seq, "[aA]")
+  t_count <- str_count(seq, "[tT]")
+  g_count <- str_count(seq, "[gG]")
+  c_count <- str_count(seq, "[cC]")
+  data.frame(Base = c("A", "T", "G", "C"), Cuenta = c(a_count, t_count, g_count, c_count))
+}
+```
+
+Figura 1: En esta gráfica se puede ver el número total de bases divididos por sus países correspondientes.
+
+```{r fig1, fig.height = 6, fig.width= 10}
+ggplot(datos_tamaños, aes(x = Variante, y = Tamaño, fill = Variante)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(title = "Comparación del número de bases de ADN por variante", x = "Variante", y = "Número de bases de ADN")+
+  theme_minimal()
+```
+
+Figura 2: En esta gráfica se ve dividido el número de bases de ADN por sus nucleótidos y por sus países correspondientes.
+
+```{r fig2, fig.height = 6, fig.width= 10}
+todos_los_datos <- do.call(rbind, lapply(list(francia, autria, eau, china, india, italy, rusia, turquia, uk, usa), contar_bases))
+todos_los_datos$Pais <- rep(c("Francia", "Autria", "Eau", "China", "India", "Italy", "Rusia", "Turquía", "UK", "USA"), each = 4)
+
+ggplot(todos_los_datos, aes(x = Base, y = Cuenta, fill= Base)) +
+  geom_bar(stat = "identity", color = "black") +
+  facet_wrap(~ Pais, scales = "free_y") +
+  labs(title = "Recuento de cada base de ADN por país",
+       x = "Base de ADN", y = "Recuento") +
+  theme_minimal()
+```
+
+### Análisis jerárquico global
+
+```{r}
+dna <- fasta2DNAbin(file = "usa-1-1.fasta")
+dna
+
+annot <- read.csv("covid.annot.csv", header=TRUE, row.names=1)
+annot
+
+D <- dist.dna(dna, model = "TN93") 
+length(D)
+
+MatrizDG <- as.data.frame(as.matrix(D)) 
+table.paint(MatrizDG, cleg=0, clabel.row=.5, clabel.col=.5)
+
+tre <- nj(D)
+plot(tre, cex = 0.6) 
+title("Árbol de tipo NJ")
+
+myBoots <- boot.phylo(tre, dna, function(e) root(nj(dist.dna(e, model = "TN93")), 1))
+myPal <- colorRampPalette(c("red", "yellow", "green", "blue"))
+plot(tre, edge.width = 1, cex = 0.7)
+title("NJ tree + bootstrap values")
+tiplabels(frame = "none", pch = 20, col = transp(num2col(as.numeric(annot$pais), col.pal = myPal), 0.7), cex = 3)
+legend("topright", fill = transp(num2col(1:length(unique(annot$pais)), col.pal = myPal), 0.7), 
+       leg = unique(annot$pais), ncol = 2)
+nodelabels(myBoots, cex = 0.6)
+
+```
+
+### Interpretación y conclusiones
+
+De acuerdo con los resultados que se obtuvieron se puede observar que hay datos faltantes en ciertos países como rusia, india, Reino Unido y en mayor medida en Estados Unidos. Tambien con la figura 2 nos pudimos dar cuenta que en china hay una mayor cantidad de adenina y timina, esto mostrandonos que es clara la diferencia del virus sarscov-2 en distintos paises por ende se comporta dirente. Otra observación que se hizo fue que dependiendo de la región en la que se encontraba el virus este variaba mucho con respecto al resto. No es lo mismo el virus asiatico que el virus americano. Y para concluir me gustaria comentar sobre como la ciencia de datos nos puede brindar muchisimas herramientas para poder comprender temas a los que incluso podemos ser ajenos, pero aun asi se puede agarra la información y generar algo positivo con esto.
+
+### Referencias
+
+M. Palacios Cruz, Santos, E., M.A. Velázquez Cervantes, & M. León Juárez. (2021). COVID-19, una emergencia de salud pública mundial. Revista Clínica Española, 221(1), 55–61. <https://doi.org/10.1016/j.rce.2020.03.001>
+
+Influenza, SARS-CoV-2, VSR y otros virus respiratorios. (2024). Paho.org. <https://www.paho.org/es/temas/influenza-sars-cov-2-vsr-otros-virus-respiratorios> Marcial, J. (2020). SARS-CoV-2 and other emerging viruses and their relationship to safety in the food chain. Scientia Agropecuaria, 11(2), 267–277. <https://doi.org/10.17268/sci.agropecu.2020.02.15>

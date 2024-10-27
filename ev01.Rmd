@@ -1,0 +1,185 @@
+---
+title: "Evidencia 1 | Análisis inicial"
+author: "Mauro Artemio Sotelo Dávila"
+date: "2024-04-27"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Parte 1
+
+## Datos y preguntas a tomar en cuenta:
+
+### 1. Situación actual de COVID-19
+
+Conforme la información que porporciona la agencia sanitaria mundial durante las fechas del 20 de noviembre al 17 de diciembre de 2023 a nivel global se reportaron aproximadamente 850 mil casos. En México de acuerdo al periódico El Universal "en lo que va del 2024 se han reportado 42 mil 143 casos sospechosos por SARS-Cov-2, de los cuales 3 mil 570 son positivos por Covid-19"(2024). En el estado de Querétaro el numero reportado es de 448 casos positivos de Covid-19 siendo el municipio de Querétaro el más afectado.
+
+### 2. Primer variante del virus que se propagó a todo el mundo
+
+El Covid-19 se origina en Wuhan, China. La primer variante que se propagó al mundo fue la Beta que desde mayo de 2020 llegó a Africa, sin embargo la más mediática y que se propago mucho fue la Alfa (B.1.1.7), que incia en octubre de 2020 expandiendose rapidamente por Reino Unido para después para llegar a todo el mundo.
+
+### 3. Variantes del virus que existen en otras regiones del mundo
+
+Existe la variante británica (Alfa), variante ómicron, variante Epsilon, variante peruana (Lambda), variante Eta, variante Iota, variante Kappa, variante Zeta, variante colombiana (Mu), variante sudafricana (Beta), variante brasileña (Gamma), variante B.1.1.7 con mutación E484K, variante californiana, y la variante india (Delta).
+
+### 4. ¿Cómo buscarías información de la variante del virus en tu país?
+
+Investigaria en las paginas oficiales de gobierno, centrandome en lo que dice la secretaria de salud. De mismo modo buscaria en los que dice la OMS, y también acudiría a articulos cientificos.
+
+### 5. Imagina que te encuentras en una situación similar a la de Li Wenliang, médico chino que intentó alertar sobre el brote de coronavirus en su país, pero fue detenido por las autoridades y obligado a retractarse, ¿qué harías en su caso? Selecciona un inciso:a) Lo reportas al centro de investigación o la universidad. b) Lo reportas a la prensa. c) Guardas la información. Elige y justifica tu respuesta.
+
+Yo selecciono el inciso b), ya que a mi parecer al informar a alguna institución de investigación, se puede inmediatamente empezar a buscar una solución para el problema del virus, y también se puede emepzar a trabajar sin alertar a la sociedad y que se comience con un caos mediático.
+
+# Parte 2
+
+## Código de R:
+
+```{r include=FALSE}
+library(ggplot2)
+library(seqinr)
+library(stringr)
+```
+
+### 1. Secuencias de las variantes de SARS-CoV-2
+
+```{r}
+alfa <- read.fasta(file = "alfa.fasta")
+beta <- read.fasta(file = "beta.fasta")
+gamma <- read.fasta(file = "gamma.fasta")
+delta <- read.fasta(file = "delta.fasta")
+```
+
+### 2. Longitud de las secuencias de cada variante
+
+```{r}
+alfa_tamaño<-getLength(alfa)
+beta_tamaño<-getLength(beta)
+gamma_tamaño<-getLength(gamma)
+delta_tamaño<-getLength(delta)
+alfa_tamaño
+beta_tamaño
+gamma_tamaño
+delta_tamaño
+```
+
+### 3. Gráfica comparativa de las bases de ADN que componen a cada una de las variantes del virus
+
+```{r}
+contar_bases <- function(seq) {
+  seq <- as.character(seq)
+  a_count <- getLength(gsub("[^a]", "", seq))
+  t_count <- getLength(gsub("[^t]", "", seq))
+  g_count <- getLength(gsub("[^g]", "", seq))
+  c_count <- getLength(gsub("[^c]", "", seq))
+  data.frame(Base = c("A", "T", "G", "C"), Cuenta = c(a_count, t_count, g_count, c_count))
+}
+ggplot(data = contar_bases(alfa[[1]]), aes(x = Base, y = Cuenta, fill = Base)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Bases", y = "Cantidad") +
+  ggtitle("Gráfica comparativa de las bases de ADN Delta")
+
+ggplot(data = contar_bases(beta[[1]]), aes(x = Base, y = Cuenta, fill = Base)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Bases", y = "Cantidad") +
+  ggtitle("Gráfica comparativa de las bases de ADN Delta")
+
+
+ggplot(data = contar_bases(gamma[[1]]), aes(x = Base, y = Cuenta, fill = Base)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Bases", y = "Cantidad") +
+  ggtitle("Gráfica comparativa de las bases de ADN Delta")
+
+
+ggplot(data = contar_bases(delta[[1]]), aes(x = Base, y = Cuenta, fill = Base)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Bases", y = "Cantidad") +
+  ggtitle("Gráfica comparativa de las bases de ADN Delta")
+```
+
+### 4. Porcentaje de GC de cada variante
+
+```{r}
+porcentaje_alfa <- function(seq, alfa_tamaño) {
+  bases <- table(strsplit(as.character(seq), split="")[[1]])
+  porcentaje_alfa <- (bases / alfa_tamaño) * 100
+  cat("Los porcentajes de alfa son:","\n")
+  cat("Porcentaje G:", porcentaje_alfa["g"], "%\n")
+  cat("Porcentaje C:", porcentaje_alfa["c"], "%\n")
+}
+porcentaje_alfa(alfa, alfa_tamaño)
+
+porcentaje_beta <- function(seq, beta_tamaño) {
+  bases <- table(strsplit(as.character(seq), split="")[[1]])
+  porcentaje_beta <- (bases / beta_tamaño) * 100
+  cat("Los porcentajes de beta son:","\n")
+  cat("Porcentaje G:", porcentaje_beta["g"], "%\n")
+  cat("Porcentaje C:", porcentaje_beta["c"], "%\n")
+}
+porcentaje_beta(beta, beta_tamaño)
+
+porcentaje_gamma <- function(seq, gamma_tamaño) {
+  bases <- table(strsplit(as.character(seq), split="")[[1]])
+  porcentaje_gamma <- (bases / gamma_tamaño) * 100
+  cat("Los porcentajes de gamma son:","\n")
+  cat("Porcentaje G:", porcentaje_gamma["g"], "%\n")
+  cat("Porcentaje C:", porcentaje_gamma["c"], "%\n")
+}
+porcentaje_gamma(gamma, gamma_tamaño)
+
+porcentaje_delta <- function(seq, delta_tamaño) {
+  bases <- table(strsplit(as.character(seq), split="")[[1]])
+  porcentaje_delta <- (bases / delta_tamaño) * 100
+  cat("Los porcentajes de delta son:","\n")
+  cat("Porcentaje G:", porcentaje_delta["g"], "%\n")
+  cat("Porcentaje C:", porcentaje_delta["c"], "%\n")
+}
+porcentaje_delta(delta, delta_tamaño)
+```
+
+### 5. Secuencias contrasentido de cada variante
+
+```{r}
+secuencias_contrasentido <- function(seq) {
+  secuencias <- gsub("A", "t", seq)
+  secuencias <- gsub("T", "a", secuencias)
+  secuencias <- gsub("G", "c", secuencias)
+  secuencias <- gsub("C", "g", secuencias)
+  return(toupper(rev(secuencias)))
+}
+
+alfa_contrasentidoe <- head(secuencias_contrasentido(alfa[[1]]))
+beta_contrasentido <- head(secuencias_contrasentido(beta[[1]]))
+gamma_contrasentido <- head(secuencias_contrasentido(gamma[[1]]))
+delta_contrasentido <- head(secuencias_contrasentido(delta[[1]]))
+
+cat("Secuencia contrasentido alfa:\n", alfa_contrasentidoe, "\n")
+cat("Secuencia contrasentido beta:\n", beta_contrasentido, "\n")
+cat("RSecuencia contrasentido gamma:\n", gamma_contrasentido, "\n")
+cat("Secuencia contrasentido delta:\n", delta_contrasentido, "\n")
+
+```
+
+### 6. Interpretación de las gráficas
+
+En todas las variantes aparenta ser en la misma proporción las bases, sin embargo cuando llega a la cantidad, se muestra una  diferencia que marca la lo cual podría ser lo que varia entre las variantes que se muestran indicando la posible razón por la cual hay variantes más peligrosas o menos dañinas. Lo que cambia es el porcentaje GC.
+
+# Referencias
+
+GAVI. (2024). From Alpha to Omicron: Everything you need to know about SARS-CoV-2 variants of concern. <https://www.gavi.org/vaccineswork/alpha-omicron-everything-you-need-know-about-coronavirus-variants-concern>
+
+Katella, K. (2023). Omicron, Delta, Alpha, and more: What to know about the coronavirus variants. Yale Medicine. <https://www.yalemedicine.org/news/covid-19-variants-of-concern-omicron>
+
+Las infecciones de COVID-19 aumentan un 52% en un mes y se espera que la tendencia continúe. (2024). Noticias ONU. <https://news.un.org/es/story/2024/01/1526887>
+
+National Center for Biotechnology Information. (n.d.). <https://www.ncbi.nlm.nih.gov/>
+
+Pérez, E. (2024). Querétaro acumula 448 casos de Covid-19 en lo que va del 2024. El Universal Querétaro. <https://www.eluniversalqueretaro.mx/sociedad/queretaro-acumula-cerca-de-500-casos-de-covid-en-lo-que-va-del-2024/>
+
+Pérez-Abeledo, M., & Moreno, J. C. S. (2021). Variantes de SARS-CoV-2, una historia todavía inacabada. Vacunas, 22(3), 173–179. <https://doi.org/10.1016/j.vacun.2021.06.003>
+
+Ruiz, Y. (2024). Van 42 mil 143 casos sospechosos de Covid-19 en 2024 y 3 mil 570 positivos. El Universal. <https://www.eluniversal.com.mx/nacion/van-42-mil-143-casos-sospechosos-de-covid-19-en-2024-y-3-mil-570-positivos/>
