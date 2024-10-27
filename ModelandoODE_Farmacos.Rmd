@@ -1,0 +1,137 @@
+---
+title: "Actividad #2 - Modelación dos Ecuaciones Diferenciales"
+author: "Paulina Cisneros A01567107, Mauro Sotelo A01707689"
+date: "2024-10-02"
+output: pdf_document
+---
+
+## Modelar ODE de fármacos
+
+### Libreria
+
+Voy a iniciar la librería porque si no no podré usar ode ni otras funciones
+
+```{r}
+library(deSolve)
+```
+
+### Función
+
+Esta es la función general que va a resolver ambas ecuaciones diferenciales Agregamos a la función la parte de la ecuación que indica la eliminación del fármaco del torrente sanguíneo.
+
+```{r}
+ed.sol = function(t, state, parms)
+{
+  with(as.list(state),
+       {
+         dxdt = rep(0, length(state))
+         dxdt[1] = -a*Xg
+         dxdt[2] = (a*Xg)-(k*Xb)
+         return(list(dxdt))
+       })
+}
+ 
+```
+
+### Parametros e inicialización de la función
+
+```{r}
+Xg = 400
+Xb = 0
+a = 0.03
+t = seq(0,360,1)
+k = 0.02 #Agregamos la tasa de eliminación del fármaco del torrente sanguíneo
+#con el tiempo
+init = c(Xg=Xg, Xb= Xb)
+
+# (4) Encontramos la solución con la función ode
+miOutput = ode(y=init, times = t, func = ed.sol, parms = NULL)
+```
+
+### Visualización de los datos
+
+```{r}
+# (5) Resultado
+head(miOutput)
+```
+
+### Graficas de la función
+
+```{r}
+# (6) Gráfico
+plot(miOutput[,2], type = "o", xlab = "Tiempo(min)", ylab = "(mg)", ylim=c(0,400), col="steelblue", main="Ejemplo Metabolismo Fármacos")
+par(new=T)
+plot(miOutput[,3], type = "o", xlab = "", ylab = "", col="indianred", ylim=c(0,400))
+legend("topright", c("Xg", "Xb"), col = c("steelblue", "indianred"),lty=1)
+grid()
+```
+
+### Analisis del modelo
+
+El agregar la tasa de eliminación provoca que el modelo se ajuste más a la realidad ya que a final de cuentas todo (incluido los fármacos) se eliminan del cuerpo por completo en determinado tiempo. Además, nos dimos cuenta que al agregarle la tasa de eliminación se parece más a lo visto en clase de que no exactamente la dosis que nos tomamos es la que llega al torrente sanguíneo (o sea no es lo mismo que se distribuye al cuerpo).
+
+Le agregamos un grid para fines de estética y de facilidad de lectura para su interpretación al momento de que los científicos de datos lo presentemos al equipo médico y/o de biotecnólogos.
+
+Creo que el utilizar gráficas para entender el metabolismo de un fármaco es muy útil. Ahora con más razón se entiende que al tomar la pastilla (en este caso de 400 mg), esta se va primero al estómago, que es a donde cae prácticamente, luego al hígado, quien recibe todos los agentes externos y manda el fármaco a las proteínas del cuerpo. El hígado es el mismo que utiliza al torrente sanguíneo para llevar el fármaco a donde se necesite a cierta tasa (a la de 0.03), y luego los riñones se quedan con el desecho del fármaco y lo purga en forma de orina. Una vez distribuida la pastilla, esta se va eliminando del cuerpo con el tiempo (porque claro, los efectos pasan) también a cierta tasa (que en este caso es la de 0.02).
+
+## Experimentación del modelo usando aspirina
+
+### Función 2
+
+```{r}
+ed.sol1 = function(t1, state1, parms)
+{
+  with(as.list(state1),
+       {
+         dxdt1 = rep(0, length(state1))
+         dxdt1[1] = -a1*Xg1
+         dxdt1[2] = (a1*Xg1)-(k1*Xb1)
+         return(list(dxdt1))
+       })
+}
+```
+
+### Parametros e inicialización de la función 2
+
+```{r}
+Xg1 = 500
+Xb1 = 0
+a1 = 0.5
+t1 = seq(0,36,1)
+k1 = 0.17 #Agregamos la tasa de eliminación del fármaco del torrente sanguíneo
+#con el tiempo
+init1 = c(Xg1=Xg1, Xb1 = Xb1)
+
+# (4) Encontramos la solución con la función ode
+miOutput1 = ode(y=init1, times = t1, func = ed.sol1, parms = NULL)
+```
+
+### Visualización de los datos 2
+
+```{r}
+# (5) Resultado
+head(miOutput1)
+```
+
+### Graficas de la función 2
+
+```{r}
+# (6) Gráfico
+plot(miOutput1[,2], type = "l", xlab = "Tiempo (hr)", ylab = "Aspirina (mg)", ylim=c(0,500), col="steelblue", main="Metabolismo de una dosis de asipira (500mg) a lo largo de 36h")
+par(new=T)
+plot(miOutput1[,3], type = "l", xlab = "", ylab = "", col="indianred", ylim=c(0,500))
+legend("topright", c("Xg", "Xb"), col = c("steelblue", "indianred"),lty=1)
+grid()
+```
+
+### Analisis del modelo 2
+
+Para experimentar sobre el modelado que hicimos primero decidimos investigar que es una pastilla que usualmente se utiliza bastante, averiguamos la tasa de eliminación usando un estandar que encontramos de 4 horas y una tasa de absorsión de 1-2 horas en promedio, lo cual si se puede apreciar en nuestra grafica pues lo absorbe de manera muy rapida sin embargo en la eliminación tarda más.
+
+Se puede observar como en el modelado la aspirina tarda mucho más en salir del cuerpo que ejemplo anterior. Deacuerdo a nuestra investigación la aspirina normalmente tarda en ser completamente eliminada del cuerpo 16 horas, lo cual creemos que coincide con nuestro modelo porque aunque en nuestro modelado tarda más es porque solo se esta tomando la tasa de eliminación como algo estandar sin tomar en cuenta si se hizo ejercicio o si se comio por lo cual nuestro modelado si tuviera las demas variables incluidas probablemente se acercaria a las 16 horas en promedio que investigamos.
+
+Por lo que vimos en el grafico podemos concluir sobre el peligro de este medicamento, pues la cantidad que llega a la sangre es bastante grande y se mantiene mucho en el cuerpo, más que otros, es por eso que el riñon tiene que pasar este proceso de filtrar bastante más que con otros. Es por todo esto que nosotros intuimos que este medicamento no puede ser recetado por tiempo prolongados.
+
+## Referencias
+
+De Medicamentos Y Productos Sanitarios, A. E. (n.d.). .:: CIMA ::. FICHA TECNICA ASPIRINA 500 mg COMPRIMIDOS. https://cima.aemps.es/cima/dochtml/ft/2011/FT_2011.html
