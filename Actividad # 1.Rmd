@@ -1,0 +1,83 @@
+---
+title: 'Actividad #1'
+author: "Mauro Artemio Sotelo Dávila"
+date: "2024-09-30"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Solución Ecuación Diferencial en R
+
+### Librería
+
+Esta linea de código se carga la libreria "deSolve", la cual usaremos para resolver. nuestra ecuación diferencial
+
+```{r}
+library(deSolve)
+```
+
+### Función
+
+En este trozo de código se redacta la función que define la ecuación diferencial. Se muestran los argumentos de la función, que en este caso son; t, state, parms.
+
+Se convierte el vector en una lista para facilitar su manipulación, defines la tasa de cambio de la cafeina en el cuerpo.
+
+```{r}
+ed.sol <- function(t, state, parms)
+{
+  with(as.list(state),
+       {
+         dxdt <- rep(0, length(state))
+         dxdt <- r-k*X
+         return(list(dxdt))
+       })
+}
+```
+
+### Parámetros de la función
+
+Aqui definimos los parametros donde X es cantidad inicial de cafeina, k es la constante a la que sale la cafeína del cuerpo, t es tiempo puesto desde 0 hasta 30 con intervalos de 1 hora, r tasa constante de entrada de cafeína.
+
+```{r}
+X <- 75
+k <- 0.2
+t <- seq(0,24,1)
+r <- 18.75
+```
+
+### Ecuación diferencial ordinaria
+
+En esta parte ejecutamos la función. Con init se define el estado incial de la función, y con ode se resuleve la ecuación diferencial usando los parametros anteriores.
+
+```{r}
+init <- c(X=X)
+miOutput <- ode(y=init, times =t, func = ed.sol, parms = NULL)
+```
+
+### Visualización
+
+Con la función de head se despliegan los primeros argumentos y los visualizamos. nos muestras que en la primeras 5 horas se reduce más que la mitad del contenido de cafeina en el cuerpo
+
+En el plot original nos muestra como que a medida que pasa el tiempo la cafeina en nuestro cuerpo disminuye. Nos podemos dar cuenta que tarda más de un dia completo en desaparecer, aunque en este modelo no estamos contemplando la ingesta de otros alimentos y hacer ejercicio por lo cual en una situación tendría que ser más rápido.
+
+En esta versión cambiada tomo como ingesta inicial el promedio de lo que contiene un cafe de starbuks, y de eso pongo que cada 4 horas consume uno, y se muestra el incremento exponencial lo cual es bastante perjudicial a la salud.
+
+El metabolismo en realidad habla de como el cuerpo uso los alimentos para consumir energia. La cafeina estimula el sistema nervioso central, por lo cual aunque nos da más energia tambien nos puede levar poner nerviosos
+
+```{r}
+head(miOutput)
+plot(miOutput, type = "o", xlab = "Tiempo (horas)", ylab = "Cafeina (mg)",
+     main = "Tasa de cambio de la cafeína en el cuerpo", col = 3)
+grid()
+```
+
+## Referencias
+
+¿Es posible acelerar su metabolismo?: MedlinePlus enciclopedia médica. (n.d.). <https://medlineplus.gov/spanish/ency/patientinstructions/000893.htm>
+
+National Library of Medicine. (n.d.). Cafeína. <https://medlineplus.gov/spanish/caffeine.html>
